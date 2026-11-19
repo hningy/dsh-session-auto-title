@@ -17,3 +17,7 @@
 
 - Register the settings route through `ctx.inject(['webServer'], ...)` instead of reading the service once during `apply`. On a cold start `webServer` can mount after this bundle, which left the route unregistered and made the Settings page fail on load; the route now appears whenever the carrier becomes available and survives an HMR reload.
 - Read the route response as text before parsing it, so an inactive plugin or a missing route reports "the plugin is not active or the route is not mounted yet" instead of `Unexpected end of JSON input`.
+
+## 1.1.2
+
+- Retry the settings load up to three times before reporting failure, so a page opened while the route is still mounting shows the controls instead of an error.

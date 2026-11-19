@@ -1,6 +1,6 @@
 {
   "name": "dsh-session-auto-title",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Retitle DeepSeek Harness sessions from the whole conversation instead of the first prompt, with a settings page for the switch and retitle cadence.",
   "type": "module",
   "main": "index.js",

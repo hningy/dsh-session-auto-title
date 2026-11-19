@@ -192,8 +192,10 @@ window.__ModuleLoader__.load({
 
       React.useEffect(() => {
         let alive = true
-        fetch(URL, { cache: 'no-store' })
-          .then(async response => {
+        /** The route can appear a moment after the page mounts; retry before failing. */
+        const load = async (attempt) => {
+          try {
+            const response = await fetch(URL, { cache: 'no-store' })
             const { payload } = await readJson(response)
             if (!alive) return
             if (!response.ok) throw new Error(payload?.error ?? `HTTP ${response.status}`)
@@ -201,10 +203,16 @@ window.__ModuleLoader__.load({
             setDraft(payload.config)
             setCanSave(payload.canSave !== false)
             setStatus({ kind: 'idle', text: '' })
-          })
-          .catch(error => {
-            if (alive) setStatus({ kind: 'error', text: `${t.failed}: ${error.message}` })
-          })
+          } catch (error) {
+            if (!alive) return
+            if (attempt < 3) {
+              setTimeout(() => { if (alive) load(attempt + 1) }, 700)
+              return
+            }
+            setStatus({ kind: 'error', text: `${t.failed}: ${error.message}` })
+          }
+        }
+        load(0)
         return () => { alive = false }
       }, [])
 
