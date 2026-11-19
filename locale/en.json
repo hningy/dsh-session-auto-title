@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Auto session titles",
+    "description": "Retitles a session from the whole conversation instead of its first prompt. Configure it in Settings → Session titles: a master switch, retitle cadence (every message, or every N messages), title length, and how many messages feed the model. Every retitle is one small auxiliary model request that never blocks the reply; the title stays while it still describes the session, and a manual rename is never overridden. Replaces the built-in first-prompt title plugin."
+  }
+}

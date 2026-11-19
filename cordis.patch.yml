@@ -1,0 +1,25 @@
+# Replace the shipped first-prompt title provider: the title service accepts a
+# single provider, so the old row must be disabled before this one registers.
+- id: session-title-llm
+  disabled: true
+
+- insert:
+    - id: session-auto-title
+      name: "dsh-session-auto-title"
+      config:
+        # Master switch and retitle cadence (also editable in Settings).
+        enabled: true
+        trigger: every-prompt
+        everyNPrompts: 3
+        # Title length targets.
+        targetWords: 6
+        targetCjkCharacters: 12
+        # Execution bounds for the auxiliary title request.
+        maxInputBytes: 8192
+        maxOutputTokens: 64
+        timeoutMs: 45000
+        # Conversation sampling: oldest prompt as an anchor plus the newest window.
+        maxMessages: 12
+        maxCharsPerMessage: 600
+        # Keep the accepted title while it still describes the session.
+        preserveAccurateTitle: true

@@ -1,0 +1,64 @@
+{
+  "name": "dsh-session-auto-title",
+  "version": "1.1.0",
+  "description": "Retitle DeepSeek Harness sessions from the whole conversation instead of the first prompt, with a settings page for the switch and retitle cadence.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "README.md",
+    "README.en.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "icon.svg"
+  ],
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "dsh",
+    "session-title",
+    "session",
+    "title",
+    "rename",
+    "auto-title"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "author": "bytedance",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bytedance/dsh-session-auto-title.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bytedance/dsh-session-auto-title/issues"
+  },
+  "homepage": "https://github.com/bytedance/dsh-session-auto-title#readme",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": []
+    },
+    "manifestVersion": 1
+  }
+}
