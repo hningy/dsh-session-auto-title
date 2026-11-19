@@ -370,62 +370,79 @@ function sanitizePatch(body) {
   return patch
 }
 
-/** Read and write this row's own config through the profile config editor. */
+/**
+ * Register the settings route once the HTTP carrier is available.
+ *
+ * `webServer` is a sibling row that can mount after this bundle on a cold
+ * start, so reading it once during `apply` would silently skip registration
+ * and leave the Settings page fetching a 404. `ctx.inject` re-runs this child
+ * whenever the service appears (and again after an HMR reload), which keeps the
+ * route alive across restarts.
+ */
 function registerSettingsRoute(ctx) {
-  const webServer = typeof ctx.get === 'function' ? ctx.get('webServer') : undefined
-  if (webServer === undefined || typeof webServer.register !== 'function') return
-  const editor = typeof ctx.get === 'function' ? ctx.get('configEditor') : undefined
+  const mount = child => {
+    const webServer = child.get('webServer')
+    if (webServer === undefined || typeof webServer.register !== 'function') return
 
-  const reply = (res, status, payload) => {
-    const body = JSON.stringify(payload)
-    res.writeHead(status, {
-      'content-type': 'application/json; charset=utf-8',
-      'cache-control': 'no-store',
-      'content-length': Buffer.byteLength(body),
-    })
-    res.end(body)
-  }
-
-  const handler = async (req, res) => {
-    try {
-      const entry = ctx.fiber?.entry
-      if (entry === undefined) {
-        reply(res, 503, { error: 'this profile row cannot be addressed for saving' })
-        return
-      }
-      const current = resolveConfig(entry.options?.config ?? {})
-      if (req.method === 'GET' || req.method === 'HEAD') {
-        reply(res, 200, { config: settingsView(current), canSave: editor !== undefined })
-        return
-      }
-      if (req.method !== 'POST') {
-        reply(res, 405, { error: 'use GET or POST' })
-        return
-      }
-      if (editor === undefined) {
-        reply(res, 503, { error: 'this profile has no config editor, so changes cannot be saved' })
-        return
-      }
-      const chunks = []
-      for await (const chunk of req) chunks.push(chunk)
-      const body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
-      const patch = sanitizePatch(body)
-      if (Object.keys(patch).length === 0) {
-        reply(res, 400, { error: 'no usable field in this request' })
-        return
-      }
-      await editor.edit(entry, previous => {
-        // `minNewPrompts` was replaced by `trigger` + `everyNPrompts`; drop the
-        // retired key so the stored row keeps only fields that still mean something.
-        const { minNewPrompts: _retired, ...rest } = previous
-        return { ...rest, ...patch }
+    const reply = (res, status, payload) => {
+      const body = JSON.stringify(payload)
+      res.writeHead(status, {
+        'content-type': 'application/json; charset=utf-8',
+        'cache-control': 'no-store',
+        'content-length': Buffer.byteLength(body),
       })
-      const saved = resolveConfig(entry.options?.config ?? {})
-      reply(res, 200, { config: settingsView(saved), canSave: true })
-    } catch (error) {
-      reply(res, 500, { error: error instanceof Error ? error.message : String(error) })
+      res.end(body)
     }
+
+    const handler = async (req, res) => {
+      try {
+        const entry = child.fiber?.entry ?? ctx.fiber?.entry
+        if (entry === undefined) {
+          reply(res, 503, { error: 'this profile row cannot be addressed for saving' })
+          return
+        }
+        const current = resolveConfig(entry.options?.config ?? {})
+        const editor = child.get('configEditor')
+        if (req.method === 'GET' || req.method === 'HEAD') {
+          reply(res, 200, { config: settingsView(current), canSave: editor !== undefined })
+          return
+        }
+        if (req.method !== 'POST') {
+          reply(res, 405, { error: 'use GET or POST' })
+          return
+        }
+        if (editor === undefined) {
+          reply(res, 503, { error: 'this profile has no config editor, so changes cannot be saved' })
+          return
+        }
+        const chunks = []
+        for await (const chunk of req) chunks.push(chunk)
+        const body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
+        const patch = sanitizePatch(body)
+        if (Object.keys(patch).length === 0) {
+          reply(res, 400, { error: 'no usable field in this request' })
+          return
+        }
+        await editor.edit(entry, previous => {
+          // `minNewPrompts` was replaced by `trigger` + `everyNPrompts`; drop the
+          // retired key so the stored row keeps only fields that still mean something.
+          const { minNewPrompts: _retired, ...rest } = previous
+          return { ...rest, ...patch }
+        })
+        const saved = resolveConfig(entry.options?.config ?? {})
+        reply(res, 200, { config: settingsView(saved), canSave: true })
+      } catch (error) {
+        reply(res, 500, { error: error instanceof Error ? error.message : String(error) })
+      }
+    }
+
+    child.effect(() => webServer.register({ kind: 'exact', path: SETTINGS_PATH, handler }))
   }
 
-  ctx.effect(() => webServer.register({ kind: 'exact', path: SETTINGS_PATH, handler }))
+  if (typeof ctx.inject !== 'function') {
+    mount(ctx)
+    return
+  }
+  const dispose = ctx.inject(['webServer'], mount)
+  ctx.effect(() => dispose)
 }

@@ -16,6 +16,24 @@ window.__ModuleLoader__.load({
     const URL = '/plugins/dsh-session-auto-title/config.json'
     const NS = 'session-auto-title'
 
+    /**
+     * Read one route response. The host answers this path only while the plugin
+     * row is active; a cold start or a disabled row yields the app's HTML 404
+     * instead of JSON, and a bare `response.json()` would then fail with an
+     * unhelpful "Unexpected end of JSON input".
+     */
+    async function readJson(response) {
+      const text = await response.text()
+      try {
+        return { payload: JSON.parse(text), status: response.status }
+      } catch {
+        const hint = response.status === 404
+          ? '插件未激活或刚重启，路由还没挂上'
+          : `返回的不是 JSON（HTTP ${response.status}）`
+        throw new Error(hint)
+      }
+    }
+
     const TEXT = {
       zh: {
         nav: '会话标题',
@@ -176,7 +194,7 @@ window.__ModuleLoader__.load({
         let alive = true
         fetch(URL, { cache: 'no-store' })
           .then(async response => {
-            const payload = await response.json()
+            const { payload } = await readJson(response)
             if (!alive) return
             if (!response.ok) throw new Error(payload?.error ?? `HTTP ${response.status}`)
             setDoc(payload.config)
@@ -201,7 +219,7 @@ window.__ModuleLoader__.load({
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify(draft),
           })
-          const payload = await response.json()
+          const { payload } = await readJson(response)
           if (!response.ok) throw new Error(payload?.error ?? `HTTP ${response.status}`)
           setDoc(payload.config)
           setDraft(payload.config)
