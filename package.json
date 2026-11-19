@@ -37,15 +37,14 @@
     "node": ">=20"
   },
   "license": "MIT",
-  "author": "bytedance",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bytedance/dsh-session-auto-title.git"
+    "url": "git+https://github.com/hningy/dsh-session-auto-title.git"
   },
   "bugs": {
-    "url": "https://github.com/bytedance/dsh-session-auto-title/issues"
+    "url": "https://github.com/hningy/dsh-session-auto-title/issues"
   },
-  "homepage": "https://github.com/bytedance/dsh-session-auto-title#readme",
+  "homepage": "https://github.com/hningy/dsh-session-auto-title#readme",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"

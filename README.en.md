@@ -13,10 +13,13 @@ This plugin registers an `all-prompts` title provider instead: each new user mes
 ## Install
 
 ```bash
-dsh plugin install dsh-session-auto-title
+# Web profile
+dsh plugin --profile web add dsh-session-auto-title
 ```
 
-Or install it from **Settings → Plugins → Add plugin** and paste the npm package name. Restart the app (or `dsh web`) if the bundle does not appear immediately.
+Desktop app: **Settings → Plugins → Add plugin**, then paste `dsh-session-auto-title`.
+
+Restart `dsh web` (or the desktop app) if the bundle does not appear immediately.
 
 ## Settings
 

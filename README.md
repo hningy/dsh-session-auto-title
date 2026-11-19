@@ -4,6 +4,17 @@
 
 根据**整个对话内容**自动重命名 DeepSeek Harness 会话，替换内置的「第一条消息定标题」行为，并带一个设置页可以随时开关和调触发时机。
 
+## 安装
+
+```bash
+# web profile
+dsh plugin --profile web add dsh-session-auto-title
+```
+
+桌面版：**设置 → 插件 → 添加插件**，填入 `dsh-session-auto-title`。
+
+装完若没出现，重启 `dsh web` 或退出重开桌面应用。
+
 ## 设置页
 
 **设置 → 会话标题**（侧栏左下角「设置」，列表里排在「状态文案」之后）。
